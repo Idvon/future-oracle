@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Predictions · Future Oracle{% endblock %}
+{% block content %}
+  <h1>Game release predictions</h1>
+  <p class="muted">
+    Will the game be released by the target date? The probability is computed from stored
+    signals (Wikipedia, RSS, store and rating sources), not from random values.
+  </p>
+  <div class="grid">
+    {% for card in cards %}
+      <a class="card" href="/events/{{ card.event.id }}">
+        <div class="card-head">
+          <span class="game">{{ card.event.game }}</span>
+          <span class="badge {{ card.event.status }}">{{ card.event.status }}</span>
+        </div>
+        <div class="meta">{{ card.event.platform or "Platform TBD" }} · by {{ card.event.target_date }}</div>
+        {% if card.prediction %}
+          <div class="prob p{{ card.prediction.probability|pct_class }}">
+            {{ "%.0f"|format(card.prediction.probability * 100) }}%
+          </div>
+          <div class="bar">
+            <div class="fill f{{ card.prediction.probability|pct_class }}" style="width: {{ "%.0f"|format(card.prediction.probability * 100) }}%"></div>
+          </div>
+          <div class="sub">
+            confidence {{ "%.0f"|format(card.prediction.confidence * 100) }}% · risk {{ "%.0f"|format(card.prediction.risk * 100) }}%
+          </div>
+        {% else %}
+          <div class="sub muted">no signals yet</div>
+        {% endif %}
+        {% if card.event.outcome is not none %}
+          <div class="outcome">actual: {{ "released" if card.event.outcome else "not released" }}</div>
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+{% endblock %}

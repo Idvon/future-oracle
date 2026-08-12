@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Accuracy · Future Oracle{% endblock %}
+{% block content %}
+  <h1>Accuracy</h1>
+  <p class="muted">
+    For each resolved event we compare the last probability with the actual outcome.
+    Lower Brier score is better: 0 = perfectly confident and right, 1 = fully wrong.
+    This is how the system detects that it made a mistake.
+  </p>
+  <table>
+    <tr>
+      <th>Game</th>
+      <th>Target date</th>
+      <th>Probability</th>
+      <th>Actual outcome</th>
+      <th>Brier score</th>
+    </tr>
+    {% for row in rows %}
+      <tr>
+        <td>{{ row.event.game }}</td>
+        <td>{{ row.event.target_date }}</td>
+        <td>{{ "%.0f"|format(row.probability * 100) }}%</td>
+        <td>{{ "released" if row.actual_outcome else "not released" }}</td>
+        <td>{{ row.brier_score }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">No resolved events yet</td></tr>
+    {% endfor %}
+  </table>
+{% endblock %}

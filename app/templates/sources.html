@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Sources · Future Oracle{% endblock %}
+{% block content %}
+  <h1>Data sources</h1>
+  <p class="muted">
+    Every prediction is traced back to the sources below. Reliability (0–1) is used when
+    computing confidence: official sources weigh more than rumor-grade feeds.
+  </p>
+  <table>
+    <tr><th>Name</th><th>Kind</th><th>URL</th><th>Reliability</th></tr>
+    {% for source in sources %}
+      <tr>
+        <td>{{ source.name }}</td>
+        <td>{{ source.kind }}</td>
+        <td><a href="{{ source.url }}" target="_blank" rel="noopener">{{ source.url }}</a></td>
+        <td>{{ "%.2f"|format(source.reliability) }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4" class="muted">No sources yet — run <code>python -m scripts.seed_db</code>.</td></tr>
+    {% endfor %}
+  </table>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ event.game }} · Future Oracle{% endblock %}
+{% block content %}
+  <a class="back" href="/">&larr; all predictions</a>
+  <h1>{{ event.game }}</h1>
+  <div class="meta">
+    {{ event.platform or "Platform TBD" }} · target {{ event.target_date }} · {{ event.status }}
+  </div>
+
+  {% if prediction %}
+    <div class="card wide">
+      <div class="big-prob">
+        {{ "%.0f"|format(prediction.probability * 100) }}<span>% chance of release by target date</span>
+      </div>
+      <div class="bar big">
+        <div class="fill f{{ prediction.probability|pct_class }}" style="width: {{ "%.0f"|format(prediction.probability * 100) }}%"></div>
+      </div>
+      <div class="kv">
+        <span>Confidence <b>{{ "%.0f"|format(prediction.confidence * 100) }}%</b></span>
+        <span>Risk <b>{{ "%.0f"|format(prediction.risk * 100) }}%</b></span>
+        <span>Computed <b>{{ prediction.created_at.strftime("%Y-%m-%d %H:%M") }}</b></span>
+      </div>
+
+      <h3>Why this number</h3>
+      <ul class="args">
+        {% for argument in prediction.arguments %}
+          <li>{{ argument }}</li>
+        {% endfor %}
+      </ul>
+
+      {% if prediction.risk_reasons %}
+        <h3>What could go wrong</h3>
+        <ul class="args risk">
+          {% for reason in prediction.risk_reasons %}
+            <li>{{ reason }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <h3>Signal breakdown</h3>
+      <table>
+        <tr><th>Signal</th><th>Strength</th><th>Weight</th><th>Contribution</th><th>Source</th></tr>
+        {% for signal_type, detail in prediction.breakdown.items() %}
+          <tr>
+            <td>{{ signal_type }}</td>
+            <td>{{ detail.value }}</td>
+            <td>{{ detail.weight }}</td>
+            <td>{{ detail.contribution }}</td>
+            <td>{{ detail.source }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">No prediction yet — run <code>python -m scripts.collect</code> first.</p>
+  {% endif %}
+
+  {% if raws %}
+    <h3>Raw records</h3>
+    <ul class="sources">
+      {% for raw in raws %}
+        <li>
+          <a href="{{ raw.url }}" target="_blank" rel="noopener">{{ raw.title }}</a>
+          <span class="muted">({{ raw.source.name }}, {{ raw.collected_at.strftime("%Y-%m-%d %H:%M") }})</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if event.status == "active" %}
+    <form id="resolve-form">
+      <label for="outcome">Mark actual outcome (used to compute accuracy / Brier score):</label>
+      <select name="outcome" id="outcome">
+        <option value="true">Released by target date</option>
+        <option value="false">Not released by target date</option>
+      </select>
+      <button type="submit">Resolve</button>
+    </form>
+    <script>
+      document.getElementById("resolve-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const outcome = new FormData(e.target).get("outcome") === "true";
+        await fetch("/api/events/{{ event.id }}/resolve", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({outcome: outcome}),
+        });
+        location.reload();
+      });
+    </script>
+  {% else %}
+    <div class="outcome">Resolved: {{ "released" if event.outcome else "not released" }}</div>
+  {% endif %}
+{% endblock %}
