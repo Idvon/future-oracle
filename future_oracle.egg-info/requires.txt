@@ -1,5 +1,4 @@
-fastapi>=0.115
-uvicorn[standard]>=0.30
+fastapi[standard]>=0.115
 sqlalchemy>=2.0
 pydantic>=2.8
 pydantic-settings>=2.4
@@ -12,3 +11,4 @@ python-multipart>=0.0.9
 
 [dev]
 pytest>=8.0
+httpx2>=2.0

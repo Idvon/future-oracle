@@ -12,6 +12,7 @@ app/api/events.py
 app/api/meta.py
 app/collectors/__init__.py
 app/collectors/rss_collector.py
+app/collectors/store_collector.py
 app/collectors/wikipedia_collector.py
 app/models/__init__.py
 app/models/event.py
@@ -38,4 +39,5 @@ scripts/seed_db.py
 tests/test_api.py
 tests/test_rss.py
 tests/test_scoring.py
+tests/test_store.py
 tests/test_wikipedia.py

@@ -1,4 +1,4 @@
-from app.collectors import rss_collector, wikipedia_collector
+from app.collectors import rss_collector, store_collector, wikipedia_collector
 from app.database import init_db, SessionLocal
 from app.models import Event, RawRecord
 from app.normalizers import signals
@@ -16,6 +16,9 @@ def main() -> None:
 
         matched = rss_collector.collect(session)
         print(f"rss: {matched} articles matched to events")
+
+        store_matched = store_collector.collect(session)
+        print(f"stores: {store_matched} store listings matched to events")
 
         pending = (
             session.query(RawRecord)

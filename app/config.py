@@ -17,6 +17,30 @@ class Settings(BaseSettings):
         "https://feeds.bbci.co.uk/news/technology/rss.xml",
     ]
 
+    stores: list[dict] = [
+        {
+            "name": "Epic Games Store",
+            "kind": "store",
+            "url": "https://store.epicgames.com",
+            "reliability": 0.7,
+            "type": "epic",
+        },
+        {
+            "name": "GOG",
+            "kind": "store",
+            "url": "https://www.gog.com",
+            "reliability": 0.7,
+            "type": "gog",
+        },
+        {
+            "name": "Steam Store",
+            "kind": "store",
+            "url": "https://store.steampowered.com",
+            "reliability": 0.8,
+            "type": "steam",
+        },
+    ]
+
     enable_scheduler: bool = False
     collect_interval_minutes: int = 60
 
