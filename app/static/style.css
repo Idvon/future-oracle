@@ -42,6 +42,26 @@ h3 { margin: 22px 0 8px; font-size: 15px; color: var(--accent); text-transform: 
 
 .muted { color: var(--muted); }
 
+form.search {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  background: none;
+  border: none;
+  max-width: 460px;
+}
+form.search input[type="search"] {
+  flex: 1;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+form.search button { margin-left: 0; }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

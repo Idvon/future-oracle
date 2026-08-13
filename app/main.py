@@ -45,11 +45,17 @@ app.include_router(meta_api.router, prefix="/api")
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, db: Session = Depends(get_db)):
-    cards = []
-    for event in repository.list_events(db):
-        cards.append({"event": event, "prediction": repository.latest_prediction(db, event.id)})
-    return templates.TemplateResponse(request, "index.html", {"cards": cards})
+def index(request: Request, q: str = "", db: Session = Depends(get_db)):
+    query = q.strip()
+    if query:
+        events = repository.search_events(db, query)
+    else:
+        events = repository.list_events(db, status="active")
+    cards = [
+        {"event": event, "prediction": repository.latest_prediction(db, event.id)}
+        for event in events
+    ]
+    return templates.TemplateResponse(request, "index.html", {"cards": cards, "q": query})
 
 
 @app.get("/events/{event_id}", response_class=HTMLResponse)

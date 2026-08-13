@@ -2,6 +2,7 @@ from app.collectors import rss_collector, store_collector, wikipedia_collector
 from app.database import init_db, SessionLocal
 from app.models import Event, RawRecord
 from app.normalizers import signals
+from app.resolver import auto_resolve
 from app.scoring import predictor
 
 
@@ -33,6 +34,13 @@ def main() -> None:
             print(
                 f"{event.game}: {prediction.probability:.0%} "
                 f"(confidence {prediction.confidence:.0%})"
+            )
+
+        resolved = auto_resolve(session)
+        for item in resolved:
+            print(
+                f"auto-resolved: {item['game']} -> "
+                f"{'released by target' if item['outcome'] else 'missed target'}"
             )
     print("done")
 

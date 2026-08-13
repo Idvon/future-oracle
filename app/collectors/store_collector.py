@@ -1,4 +1,5 @@
 import json
+import time
 import urllib.request
 from datetime import date, datetime
 
@@ -12,6 +13,8 @@ from app.models import Event, RawRecord, Source
 MATCH_THRESHOLD = 0.6
 TIMEOUT = 20
 SEARCH_LIMIT = 5
+RETRIES = 3
+RETRY_DELAY = 1.0
 USER_AGENT = (
     "FutureOracleTestTask/0.1 (release-prediction prototype; contact: dev@example.com)"
 )
@@ -130,35 +133,53 @@ def _search_gog(client: httpx.Client, name: str) -> list[dict]:
 
 
 def _steam_details(client: httpx.Client, appid: int) -> dict | None:
-    try:
-        response = client.get(
-            "https://store.steampowered.com/api/appdetails",
-            params={"appids": appid, "l": "en"},
-        )
-        response.raise_for_status()
-        payload = response.json().get(str(appid), {})
-        if not payload.get("success"):
-            return None
-        data = payload.get("data") or {}
-        release_date = data.get("release_date") or {}
-        return {
-            "title": data.get("name"),
-            "url": f"https://store.steampowered.com/app/{appid}/",
-            "release_date": _steam_date(release_date.get("date")),
-            "coming_soon": bool(release_date.get("coming_soon")),
-        }
-    except Exception:
-        return None
+    for attempt in range(RETRIES):
+        try:
+            response = client.get(
+                "https://store.steampowered.com/api/appdetails",
+                params={"appids": appid, "cc": "us", "l": "en"},
+            )
+            response.raise_for_status()
+            payload = response.json().get(str(appid), {})
+            if not payload.get("success"):
+                if attempt < RETRIES - 1:
+                    time.sleep(RETRY_DELAY)
+                    continue
+                return None
+            data = payload.get("data") or {}
+            release_date = data.get("release_date") or {}
+            return {
+                "title": data.get("name"),
+                "url": f"https://store.steampowered.com/app/{appid}/",
+                "release_date": _steam_date(release_date.get("date")),
+                "coming_soon": bool(release_date.get("coming_soon")),
+            }
+        except Exception:
+            if attempt >= RETRIES - 1:
+                return None
+            time.sleep(RETRY_DELAY)
+    return None
 
 
 def _search_steam(client: httpx.Client, name: str) -> list[dict]:
-    response = client.get(
-        "https://store.steampowered.com/api/storesearch/",
-        params={"term": name, "cc": "us", "l": "en"},
-    )
-    response.raise_for_status()
+    items: list[dict] = []
+    for attempt in range(RETRIES):
+        try:
+            response = client.get(
+                "https://store.steampowered.com/api/storesearch/",
+                params={"term": name, "cc": "us", "l": "en"},
+            )
+            response.raise_for_status()
+            items = response.json().get("items", []) or []
+            if items or attempt >= RETRIES - 1:
+                break
+            time.sleep(RETRY_DELAY)
+        except Exception:
+            if attempt >= RETRIES - 1:
+                return []
+            time.sleep(RETRY_DELAY)
     results = []
-    for item in response.json().get("items", [])[:3]:
+    for item in items[:3]:
         details = _steam_details(client, item.get("id"))
         if details is not None:
             results.append(details)

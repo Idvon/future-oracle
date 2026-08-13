@@ -75,6 +75,33 @@ def test_index_page_renders():
         assert "Grand Theft Auto VI" in response.text
 
 
+def test_search_by_game_name():
+    with TestClient(app) as client:
+        events = client.get("/api/events").json()
+        game = events[0]["game"]
+        response = client.get(f"/api/events?q={game.split()[0]}")
+        assert response.status_code == 200
+        found = [item for item in response.json() if item["id"] == events[0]["id"]]
+        assert found and found[0]["status"] == "active"
+
+
+def test_search_finds_resolved_events():
+    with TestClient(app) as client:
+        active = client.get("/api/events").json()[0]
+        client.post(f"/api/events/{active['id']}/resolve", json={"outcome": True})
+        response = client.get(f"/api/events?q={active['game'].split()[0]}")
+        resolved = [item for item in response.json() if item["id"] == active["id"]]
+        assert resolved and resolved[0]["status"] == "resolved"
+
+
+def test_search_on_index_page():
+    with TestClient(app) as client:
+        active = client.get("/api/events").json()[0]
+        response = client.get(f"/?q={active['game'].split()[0]}")
+        assert response.status_code == 200
+        assert active["game"] in response.text
+
+
 def test_accuracy_and_sources_pages():
     with TestClient(app) as client:
         assert client.get("/accuracy").status_code == 200

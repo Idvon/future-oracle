@@ -1,9 +1,9 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import SessionLocal
 from app.models import Event
+from app.resolver import auto_resolve
 from app.scoring import predictor
 
 _scheduler: BackgroundScheduler | None = None
@@ -13,6 +13,7 @@ def _collect_job() -> None:
     with SessionLocal() as session:
         for event in session.query(Event).filter(Event.status == "active").all():
             predictor.recompute_latest(session, event)
+        auto_resolve(session)
 
 
 def start_scheduler() -> None:
