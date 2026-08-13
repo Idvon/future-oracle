@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 venv/
 proj/
+*.egg-info/
 .pytest_cache/
 *.log
 .idea/

@@ -6,6 +6,13 @@
     Will the game be released by the target date? The probability is computed from stored
     signals (Wikipedia, RSS, store and rating sources), not from random values.
   </p>
+  <form class="search" method="get" action="/">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search games..." aria-label="Search games">
+    <button type="submit">Search</button>
+  </form>
+  {% if q %}
+    <p class="muted">Showing all matches for "{{ q }}" (including resolved events).</p>
+  {% endif %}
   <div class="grid">
     {% for card in cards %}
       <a class="card" href="/events/{{ card.event.id }}">

@@ -14,6 +14,13 @@ def get_event(session: Session, event_id: int) -> Event | None:
     return session.get(Event, event_id)
 
 
+def search_events(session: Session, query: str, status: str | None = None) -> list[Event]:
+    result = session.query(Event).filter(Event.game.ilike(f"%{query.strip()}%"))
+    if status:
+        result = result.filter(Event.status == status)
+    return result.order_by(Event.target_date).all()
+
+
 def latest_prediction(session: Session, event_id: int) -> Prediction | None:
     return (
         session.query(Prediction)

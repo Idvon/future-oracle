@@ -24,8 +24,12 @@ def _summarize(event, prediction) -> EventSummary:
 
 
 @router.get("", response_model=list[EventSummary])
-def list_events(db: Session = Depends(get_db)):
-    events = repository.list_events(db)
+def list_events(q: str | None = None, db: Session = Depends(get_db)):
+    query = (q or "").strip()
+    if query:
+        events = repository.search_events(db, query)
+    else:
+        events = repository.list_events(db, status="active")
     return [_summarize(e, repository.latest_prediction(db, e.id)) for e in events]
 
 
